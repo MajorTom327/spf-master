@@ -1,0 +1,45 @@
+{
+  "name": "spf-master",
+  "version": "1.0.1",
+  "description": "",
+  "main": "lib/index.js",
+  "types": "lib/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node-dev ./src/index.ts",
+    "build": "tsc",
+    "lint": "tslint -p tsconfig.json",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint",
+    "preversion": "npm run lint",
+    "version": "npm run format && git add -A src",
+    "postversion": "git push && git push --tags"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com:MajorTom327/spf-master.git"
+  },
+  "keywords": [
+    "spf",
+    "dns",
+    "mail"
+  ],
+  "author": "MajorTom327",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^14.0.5",
+    "prettier": "^2.0.5",
+    "ts-node": "^8.10.1",
+    "ts-node-dev": "^1.0.0-pre.44",
+    "tslint": "^6.1.2",
+    "tslint-config-prettier": "^1.18.0",
+    "typescript": "^3.9.3"
+  },
+  "files": [
+    "lib/**/*"
+  ],
+  "dependencies": {
+    "spf-parse": "^1.0.4"
+  }
+}

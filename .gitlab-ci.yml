@@ -1,0 +1,32 @@
+image: node:latest
+
+before_script:
+  - npm install
+
+cache:
+  paths:
+    - node_modules/
+
+stages:
+  - build
+  - deploy
+
+build_job:
+  stage: build
+  script:
+    - npm run build
+  artifacts:
+    paths:
+      - lib/
+
+publish_job:
+  stage: deploy
+  only:
+    - tags
+    - triggers
+  script:
+    - echo "[$NPM_TOKEN]"
+    - env
+    - echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN">.npmrc
+    - cat -e ~/.npmrc
+    - npm publish
