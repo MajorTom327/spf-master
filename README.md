@@ -1,10 +1,17 @@
-# SPF-Master
+# SPF-Master ![npm](https://img.shields.io/npm/v/spf-master) ![NPM](https://img.shields.io/npm/l/spf-master)
+
+Simple SPF Record Recursive inspector
 
 ## Overview
 
-SPF-Master is a simple inspector SPF DNS record.
+spf-master is a inspector of the DNS record for getting info on the Mail sending status of a domain.
+You can use it to check if you can send a mail with this domain from the server with the ip.
 
-It's a basic surcharge of DNS module but including recursion and details informations.
+This Libraries is a simple surcharge of the DNS node module. It use spf-parse for matching the DNS record and do recursive inspection on the domain if needed.
+
+## Use case
+
+The most simple usage it's to check if a customer of your service has set correctly his domains records for making you able to send mail from his domain without getting flagged as Spam
 
 ## Usage
 
@@ -33,7 +40,6 @@ inspector
 
 ## Limitations
 
-The current limitation is not thread save.
-You should create a new inspecter with sames settings for running side-by-side.
+The current version isn't thread save. One instance of the checker should be waited to finish a check before starting an other check.
 
-You can re-use instance. But starting a new inspect on same instance until the last inspection finished will break.
+Re-using an instance is technically possible. But if you start another check while the last check isn't finished, the status of the precedent check can be unexpected.
