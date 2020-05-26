@@ -1,7 +1,7 @@
 import * as dns from 'dns';
-import SpfParser from 'spf-parse';
-import { InspecterSearch, InspecterResults, InspecterOptions } from './Types/Inspecter';
-import { Record, SpfMechanism, SpfType } from './Types/Record';
+import * as SpfParser from 'spf-parse';
+import { InspecterSearch, InspecterResults, InspecterOptions } from './types/Inspecter';
+import { Record, SpfMechanism, SpfType } from './types/Record';
 
 // Todo: Match IPv6
 export const isRawIP = (str: string): boolean => {
@@ -86,7 +86,7 @@ export class Inspector {
             .map(
               (record: string): Record => ({
                 record,
-                detail: SpfParser(record),
+                detail: SpfParser(record || ''),
               }),
             ),
         );
