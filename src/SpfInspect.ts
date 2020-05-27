@@ -47,27 +47,31 @@ export class Inspector {
     this.includesFound = [];
     this.domainsFound = [];
 
-    return new Promise((resolve) => {
-      this.getDnsRecord(domain).then((records: Record[]) => {
-        Promise.all(
-          records.map(
-            (record: Record): Promise<Record> => {
-              if (record.detail.valid) return this.getIncludes(record, this.options.depth);
-              return Promise.resolve(record);
-            },
-          ),
-        ).then((recordsList: Record[]) => {
-          resolve({
-            records: recordsList || [],
-            found: {
-              ips: this.ipsFound || [],
-              includes: this.includesFound || [],
-              domains: this.domainsFound || [],
-            },
-            isMatch: this.match,
-          });
-        });
-      });
+    return new Promise((resolve, reject) => {
+      this.getDnsRecord(domain)
+        .then((records: Record[]) => {
+          Promise.all(
+            records.map(
+              (record: Record): Promise<Record> => {
+                if (record.detail.valid) return this.getIncludes(record, this.options.depth);
+                return Promise.resolve(record);
+              },
+            ),
+          )
+            .then((recordsList: Record[]) => {
+              resolve({
+                records: recordsList || [],
+                found: {
+                  ips: this.ipsFound || [],
+                  includes: this.includesFound || [],
+                  domains: this.domainsFound || [],
+                },
+                isMatch: this.match,
+              });
+            })
+            .catch(reject);
+        })
+        .catch(reject);
     });
   }
 
