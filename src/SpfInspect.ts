@@ -164,8 +164,9 @@ export class Inspector {
 
     if (!this.match) {
       this.reason =
-        [!statesCheck[0] ? 'includes' : '', !statesCheck[1] ? 'ips' : '', !statesCheck[2] ? 'domains' : ''].join(', ') +
-        ' not fully matched';
+        [!statesCheck[0] ? 'includes' : '', !statesCheck[1] ? 'ips' : '', !statesCheck[2] ? 'domains' : '']
+          .filter((e) => e.length > 0)
+          .join(', ') + ' not fully matched';
     } else {
       this.reason = undefined;
     }
