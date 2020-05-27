@@ -19,4 +19,5 @@ export interface InspecterResults {
     domains: string[];
   };
   isMatch: boolean;
+  reason?: string;
 }

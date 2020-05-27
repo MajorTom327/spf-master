@@ -28,6 +28,7 @@ export class Inspector {
   domainsFound: string[] = [];
 
   match: boolean = false;
+  reason?: string;
 
   constructor(options: Partial<InspecterOptions>) {
     this.options = {
@@ -67,6 +68,7 @@ export class Inspector {
                   domains: this.domainsFound || [],
                 },
                 isMatch: this.match,
+                reason: this.reason,
               });
             })
             .catch(reject);
@@ -153,10 +155,19 @@ export class Inspector {
     this.domainsFound = [...this.domainsFound, ...ips];
 
     // * Check if it's a full match
-    this.match = [
+    const statesCheck: boolean[] = [
       CrossMatch(this.includesFound, this.includesToFind),
       CrossMatch(this.ipsFound, this.ipsToFind),
       CrossMatch(this.domainsFound, this.domainsToFind),
-    ].every((e) => e === true);
+    ];
+    this.match = statesCheck.every((e) => e === true);
+
+    if (!this.match) {
+      this.reason =
+        [!statesCheck[0] ? 'includes' : '', !statesCheck[1] ? 'ips' : '', !statesCheck[2] ? 'domains' : ''].join(', ') +
+        ' not fully matched';
+    } else {
+      this.reason = undefined;
+    }
   }
 }
