@@ -20,7 +20,81 @@ test('Basic domain', (done) => {
   expect('test').toBe('test');
 });
 
-// * Test with ips error
+test('Basic domain with include', (done) => {
+  const inspecter: SpfInspector = new SpfInspector({});
+  try {
+    inspecter.inspect('google.com', { includes: ['_spf.google.com'] }).then((record: InspecterResults) => {
+      expect(record.records.length).toBe(1);
+      expect(record.reason).toBeUndefined();
+      expect(record.isMatch).toBeTruthy();
+      expect(record.found.ips.length).toBe(0);
+      expect(record.found.includes.length).toBe(1);
+      expect(record.found.domains.length).toBe(0);
+      expect(record.found.includes).toContain('_spf.google.com');
+      const r = record.records[0];
+
+      expect(r.record).toContain('v=spf1');
+      expect(r.record).toBe('v=spf1 include:_spf.google.com ~all');
+      done();
+    });
+  } catch (error) {
+    done(error);
+  }
+  expect('test').toBe('test');
+});
+
+test('Basic domain with depth', (done) => {
+  const inspecter: SpfInspector = new SpfInspector({ depth: 1, stopOnMatch: false });
+  try {
+    inspecter.inspect('google.com', {}).then((record: InspecterResults) => {
+      expect(record.records.length).toBe(1);
+      expect(record.reason).toBeUndefined();
+      expect(record.isMatch).toBeTruthy();
+
+      expect(record.found.ips.length).toBe(0);
+      expect(record.found.includes.length).toBe(4);
+      expect(record.found.domains.length).toBe(0);
+
+      expect(record.found.includes).toContain('_spf.google.com');
+      expect(record.found.includes).toContain('_netblocks.google.com');
+      expect(record.found.includes).toContain('_netblocks2.google.com');
+      expect(record.found.includes).toContain('_netblocks3.google.com');
+
+      const r = record.records[0];
+
+      expect(r.record).toContain('v=spf1');
+      expect(r.record).toBe('v=spf1 include:_spf.google.com ~all');
+      expect(r.includes).toBeDefined();
+      expect(r.includes?.length).toBe(1);
+      done();
+    });
+  } catch (error) {
+    done(error);
+  }
+  expect('test').toBe('test');
+});
+
+test('Basic domain with depth and stop on match', (done) => {
+  const inspecter: SpfInspector = new SpfInspector({ depth: 1, stopOnMatch: true });
+  try {
+    inspecter.inspect('google.com', {}).then((record: InspecterResults) => {
+      expect(record.records.length).toBe(1);
+      expect(record.reason).toBeUndefined();
+      expect(record.isMatch).toBeTruthy();
+
+      const r = record.records[0];
+
+      expect(r.record).toContain('v=spf1');
+      expect(r.record).toBe('v=spf1 include:_spf.google.com ~all');
+      expect(r.includes).toBeUndefined();
+      done();
+    });
+  } catch (error) {
+    done(error);
+  }
+  expect('test').toBe('test');
+});
+
 test('Error with ips', (done) => {
   const inspecter: SpfInspector = new SpfInspector({});
   try {
