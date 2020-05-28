@@ -1,6 +1,6 @@
 import * as dns from 'dns';
 import * as SpfParser from 'spf-parse';
-import { InspecterSearch, InspecterResults, InspecterOptions } from './types/Inspecter';
+import { InspecterSearch, InspecterResults, InspecterOptions, InspecterError } from './types/Inspecter';
 import { Record, SpfMechanism, SpfType } from './types/Record';
 
 // Todo: Match IPv6
@@ -28,7 +28,7 @@ export class Inspector {
   domainsFound: string[] = [];
 
   match: boolean = false;
-  reason?: string;
+  reason?: InspecterError[];
 
   constructor(options: Partial<InspecterOptions>) {
     this.options = {
@@ -73,7 +73,19 @@ export class Inspector {
             })
             .catch(reject);
         })
-        .catch(reject);
+        .catch((data) => {
+          const error: InspecterResults = {
+            records: [],
+            isMatch: false,
+            found: {
+              ips: [],
+              includes: [],
+              domains: [],
+            },
+            reason: ['ENODATA' ? InspecterError.NOTFOUND : InspecterError.UNKNWON],
+          };
+          reject(error);
+        });
     });
   }
 
@@ -86,6 +98,10 @@ export class Inspector {
           return;
         }
 
+        if (entries.length === 0) {
+          resolve([]);
+          return;
+        }
         resolve(
           entries[0]
             .filter((record: string): boolean => record.includes('v=spf1'))
@@ -163,10 +179,11 @@ export class Inspector {
     this.match = statesCheck.every((e) => e === true);
 
     if (!this.match) {
-      this.reason =
-        [!statesCheck[0] ? 'includes' : '', !statesCheck[1] ? 'ips' : '', !statesCheck[2] ? 'domains' : '']
-          .filter((e) => e.length > 0)
-          .join(', ') + ' not fully matched';
+      let err: InspecterError[] = [];
+      err = !statesCheck[0] ? [...err, InspecterError.INC_NOT_MATCH] : err;
+      err = !statesCheck[1] ? [...err, InspecterError.IPS_NOT_MATCH] : err;
+      err = !statesCheck[2] ? [...err, InspecterError.DOM_NOT_MATCH] : err;
+      this.reason = [...err];
     } else {
       this.reason = undefined;
     }
