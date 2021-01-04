@@ -1,17 +1,28 @@
 {
   "name": "spf-master",
-  "version": "1.0.0",
-  "description": "",
+  "version": "2.0.0",
+  "description": "Basic tool for inspecting SPF record",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc -p ./tsconfig.json",
-    "dev": "ts-node-dev ./src/index.ts"
+    "dev": "ts-node-dev ./src/index.ts",
+    "prepare": "npm run build",
+    "version": "git add -A src",
+    "postversion": "git push && git push --tags"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@github.com:MajorTom327/spf-master.git"
+  },
+  "keywords": [
+    "spf",
+    "dns",
+    "mail"
+  ],
+  "author": "MajorTom327",
+  "license": "MIT",
   "dependencies": {
     "ip-regex": "^4.2.0",
     "ramda": "^0.27.1",
