@@ -10,3 +10,5 @@ export type Report = {
   isMatch: boolean,
   reason: string
 }
+
+export default Report;

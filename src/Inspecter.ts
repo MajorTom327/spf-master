@@ -5,3 +5,5 @@ export enum InspecterError {
   INC_NOT_MATCH = 'INCMATCH',
   DOM_NOT_MATCH = 'DOMMATCH',
 }
+
+export default InspecterError

@@ -96,7 +96,6 @@ const SpfInspector = (domain: string, search: Partial<Search> & { maxDepth?: num
   const getIncludes = async (record: Record, depth: number) => {
     updateState(record);
 
-    //Todo: Stop report if full match or depth condition
     if (status.match && stopOnMatch) return Promise.resolve(record);
     if (depth < 0) return Promise.resolve(record);
 

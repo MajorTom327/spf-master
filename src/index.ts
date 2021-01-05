@@ -1,8 +1,14 @@
 import SpfInspector from './SpfInspector';
 
-(async () => {
+export { default as SpfInspector } from './SpfInspector';
+export { default as Report } from './Report';
+export { default as InspecterError } from './Inspecter';
 
-  const result = await SpfInspector('google.com', { ips: ['127.0.0.1'] }, false);
+export {
+  SpfType,
+  SpfMechanism,
+  SpfRecord,
+  Record
+} from './Record'
 
-  console.log(JSON.stringify(result, null, 4))
-})()
+export default SpfInspector;
