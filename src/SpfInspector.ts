@@ -136,12 +136,19 @@ const SpfInspector = (domain: string, search: Partial<Search> & { maxDepth?: num
       ).then((records: Record[]) => {
         // * Here we got the finals records.
         // * Format the report
+
+        const helperRemoveEmpty = R.compose(
+          R.reject(
+            R.either(R.isNil, R.isEmpty)
+          ),
+          R.defaultTo([])
+        )
         return Promise.resolve({
           records: records || [],
           found: {
-            ips: R.defaultTo([], status.ips),
-            includes: R.defaultTo([], status.includes),
-            domains: R.defaultTo([], status.domains),
+            ips: helperRemoveEmpty(status.ips),
+            includes: helperRemoveEmpty(status.includes),
+            domains: helperRemoveEmpty(status.domains),
           },
           isMatch: status.match,
           reason: '',
