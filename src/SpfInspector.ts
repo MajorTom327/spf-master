@@ -37,7 +37,8 @@ const SpfInspector = (domain: string, search: Partial<Search> & { maxDepth?: num
         if (err) return reject(err);
 
         resolve(
-          entries[0]
+          entries
+            .reduce((accumulator, currentValue) => [...accumulator, ...currentValue])
             .filter((record: string): boolean => record.includes('v=spf1')) // * Hide not SPF entries
             .map(// * Transorm to data record
               (record: string): Record => ({
