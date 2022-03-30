@@ -1,6 +1,6 @@
 {
   "name": "spf-master",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "Basic tool for inspecting SPF record",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
