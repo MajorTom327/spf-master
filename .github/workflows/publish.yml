@@ -1,16 +1,13 @@
 name: 🚀 Publish
 
 on:
-  push:
+  release:
+    types: [created]
 
 permissions:
   actions: write
   contents: read
   packages: write
-
-on:
-  release:
-    types: [created]
 
 jobs:
   build:
