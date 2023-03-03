@@ -130,7 +130,7 @@ const SpfInspector = (domain: string, search: Partial<Search> & { maxDepth?: num
       return Promise.all(
         records
           .map((record: Record): Promise<Record> => {
-            if (R.path(['detail', 'valid'], record)) return getIncludes(record, Math.max(0, R.defaultTo(3, search.maxDepth)));
+            if (R.path(['detail', 'valid'], record)) return getIncludes(record, Math.max(0, R.defaultTo(10, search.maxDepth)));
             return Promise.resolve(record);
           })
       ).then((records: Record[]) => {

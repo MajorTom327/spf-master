@@ -1,0 +1,116 @@
+name: 🏗️ Build
+
+on:
+  push:
+
+permissions:
+  actions: write
+  contents: read
+  packages: write
+
+on:
+  release:
+    types: [created]
+
+jobs:
+  build:
+    name: 🛠 Build
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - name: 🛑 Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.11.0
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        registry-url: "https://npm.pkg.github.com"
+        cache: 'yarn'
+    - run: yarn
+    - run: yarn build
+    - uses: actions/upload-artifact@v2
+      with:
+        name: build-artifact
+        path: ./dist
+
+    - name: 💾 Cache
+      id: cache-build
+      uses: actions/cache@v2
+      with:
+        path: ./dist
+        key: ${{ github.sha }}
+
+  publish-gpr:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: https://npm.pkg.github.com/
+          cache: 'yarn'
+      - uses: actions/cache@v2
+        id: cache-build
+        with:
+          path: ./dist
+          key: ${{ github.sha }}
+      - run: echo "@majortom327:registry=https://npm.pkg.github.com" >> .npmrc
+      - run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-artifact
+          path: ./dist
+
+      - name: 💾 Cache
+        id: cache-build
+        uses: actions/cache@v2
+        with:
+          path: ./dist
+          key: ${{ github.sha }}
+
+  publish-npm:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      packages: write
+      contents: read
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'yarn'
+      - uses: actions/cache@v2
+        id: cache-build
+        with:
+          path: ./dist
+          key: ${{ github.sha }}
+      - run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: build-artifact
+          path: ./dist
+
+      - name: 💾 Cache
+        id: cache-build
+        uses: actions/cache@v2
+        with:
+          path: ./dist
+          key: ${{ github.sha }}
