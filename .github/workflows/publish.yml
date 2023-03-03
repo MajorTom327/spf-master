@@ -38,7 +38,7 @@ jobs:
 
     - name: 💾 Cache
       id: cache-build
-      uses: actions/cache@v2
+      uses: actions/cache@v3
       with:
         path: ./dist
         key: ${{ github.sha }}
@@ -56,7 +56,7 @@ jobs:
           node-version: 16
           registry-url: https://npm.pkg.github.com/
           cache: 'yarn'
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache-build
         with:
           path: ./dist
@@ -73,7 +73,7 @@ jobs:
 
       - name: 💾 Cache
         id: cache-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ./dist
           key: ${{ github.sha }}
@@ -91,7 +91,7 @@ jobs:
           node-version: 16
           registry-url: 'https://registry.npmjs.org'
           cache: 'yarn'
-      - uses: actions/cache@v2
+      - uses: actions/cache@v3
         id: cache-build
         with:
           path: ./dist
@@ -107,7 +107,7 @@ jobs:
 
       - name: 💾 Cache
         id: cache-build
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: ./dist
           key: ${{ github.sha }}
