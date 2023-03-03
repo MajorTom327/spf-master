@@ -1,0 +1,79 @@
+# This workflow will do a clean installation of node dependencies, cache/restore them, build the source code and run tests across different versions of node
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-nodejs
+
+name: 🏗️ Build
+
+on:
+  push:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+permissions:
+  actions: write
+  contents: read
+  packages: write
+
+jobs:
+  build:
+    name: 🛠 Build
+    runs-on: ubuntu-latest
+    environment: production
+
+    strategy:
+      matrix:
+        node-version: [14.x, 16.x, 18.x]
+        # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
+
+    steps:
+    - name: 🛑 Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.11.0
+    - uses: actions/checkout@v3
+    - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v3
+      with:
+        node-version: ${{ matrix.node-version }}
+        registry-url: "https://npm.pkg.github.com"
+        cache: 'yarn'
+    - run: yarn
+    - run: yarn build
+    - uses: actions/upload-artifact@v2
+      with:
+        name: build-artifact
+        path: ./dist
+
+    - name: 💾 Cache
+      id: cache-build
+      uses: actions/cache@v2
+      with:
+        path: ./dist
+        key: ${{ github.sha }}
+
+  publish:
+    name: 🚀 Publish
+    runs-on: ubuntu-latest
+    needs: [build]
+    permissions:
+      contents: read
+      packages: write
+    if: github.ref == 'refs/heads/master'
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: ⎔ Setup node
+        uses: actions/setup-node@v3
+        with:
+          node-version: "16.x"
+          registry-url: 'https://npm.pkg.github.com'
+          cache: 'yarn'
+      - uses: actions/cache@v2
+        id: cache-build
+        with:
+          path: ./dist
+          key: ${{ github.sha }}
+      - name: 🚀 publish
+        if: steps.cache-build.outputs.cache-hit != true
+        run: yarn publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
