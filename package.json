@@ -21,7 +21,7 @@
   "author": "MajorTom327",
   "license": "MIT",
   "dependencies": {
-    "ip-regex": "^4.2.0",
+    "ip-regex": "^5.0.0",
     "ramda": "^0.28.0",
     "spf-parse": "^1.0.4"
   },
