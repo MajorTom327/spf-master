@@ -22,7 +22,7 @@
   "license": "MIT",
   "dependencies": {
     "ip-regex": "^4.2.0",
-    "ramda": "^0.28.0",
+    "ramda": "^0.29.0",
     "spf-parse": "^1.0.4"
   },
   "devDependencies": {
