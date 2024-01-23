@@ -1,98 +1,128 @@
-import * as dns from 'dns';
-import SpfParser from 'spf-parse';
-import { Record, SpfMechanism, SpfType } from './Record'
-import { v4 as ipV4, v6 as ipV6 } from 'ip-regex'
-import { Report } from './Report';
-import { InspecterError } from './Inspecter';
+import * as dns from "dns";
+import SpfParser from "spf-parse";
+import { Record, SpfMechanism, SpfType } from "./Record";
+import { v4 as ipV4, v6 as ipV6 } from "ip-regex";
+import { Report } from "./Report";
+import { InspecterError } from "./Inspecter";
+import {
+  pathOr,
+  or,
+  propEq,
+  prop,
+  equals,
+  propOr,
+  flatten,
+  path,
+  defaultTo,
+  compose,
+  reject,
+  either,
+  isNil,
+  isEmpty,
+  length,
+  curry,
+} from "rambda";
 
-const R = require('ramda');
+const contains = curry((item: string, list: string[]) => list.includes(item))
+
+// const R = require('rambda');
 
 type Search = {
-  ips: string[]
-  includes: string[],
-  domains: string[],
-}
+  ips: string[];
+  includes: string[];
+  domains: string[];
+};
 
 type Status = {
-  found: boolean,
-  match: boolean
-} & Search
+  found: boolean;
+  match: boolean;
+} & Search;
 
+const isRawIp = (domain: string): boolean =>
+  ipV4().test(domain) || ipV6().test(domain);
 
-const isRawIp = (domain: string): boolean => ipV4().test(domain) || ipV6().test(domain);
-
-const SpfInspector = (domain: string, search: Partial<Search> & { maxDepth?: number } = {}, stopOnMatch: boolean = true): Promise<Report> => {
+const SpfInspector = (
+  domain: string,
+  search: Partial<Search> & { maxDepth?: number } = {},
+  stopOnMatch: boolean = true
+): Promise<Report> => {
   let status: Status = {
     found: false,
     ips: [],
     includes: [],
     domains: [],
-    match: false
-  }
+    match: false,
+  };
 
   const getDnsRecord = (domain: string): Promise<Record[]> => {
-    if (isRawIp(domain)) return Promise.reject(new Error(`Domain ${domain} is a raw ip !`));
+    if (isRawIp(domain))
+      return Promise.reject(new Error(`Domain ${domain} is a raw ip !`));
     return new Promise<Record[]>((resolve, reject) => {
       dns.resolveTxt(domain, (err, entries) => {
         if (err) return reject(err);
 
         resolve(
           entries
-            .reduce((accumulator, currentValue) => [...accumulator, ...currentValue])
-            .filter((record: string): boolean => record.includes('v=spf1')) // * Hide not SPF entries
-            .map(// * Transorm to data record
+            .reduce((accumulator, currentValue) => [
+              ...accumulator,
+              ...currentValue,
+            ])
+            .filter((record: string): boolean => record.includes("v=spf1")) // * Hide not SPF entries
+            .map(
+              // * Transorm to data record
               (record: string): Record => ({
                 record,
-                detail: SpfParser(record || ''),
-              }),
-            ),
-        )
+                detail: SpfParser(record || ""),
+              })
+            )
+        );
       });
-    })
-  }
+    });
+  };
 
   const updateState = (record: Record): void => {
-    const mechanisms = R.pathOr([], ['detail', 'mechanisms'], record);
+    const mechanisms = pathOr([], ["detail", "mechanisms"], record);
 
-    if (R.length(mechanisms) === 0) return;
+    if (length(mechanisms) === 0) return;
 
     // * Update ips
     mechanisms
-      .filter(R.or(R.propEq('type', SpfType.ip4), R.propEq('type', SpfType.ip6)))
-      .map((R.prop('value')))
+      .filter(or(propEq("type", SpfType.ip4), propEq("type", SpfType.ip6)))
+      .map(prop("value"))
       .forEach((ip) => {
-        if (R.contains(ip, status.ips)) return;
+        if (contains(ip, status.ips)) return;
         // * Mutate the state
         status.ips.push(ip);
-      })
+      });
 
     // * Update includes
     mechanisms
-      .filter(R.propEq('type', SpfType.include))
-      .map((R.prop('value')))
+      .filter(propEq("type", SpfType.include))
+      .map(prop("value"))
       .forEach((include) => {
-        if (R.contains(include, status.includes)) return;
+        if (contains(include, status.includes)) return;
         // * Mutate the state
         status.includes.push(include);
-      })
+      });
 
     // * Update domain
     mechanisms
-      .filter(R.propEq('type', SpfType.a))
-      .map((R.prop('value')))
+      .filter(propEq("type", SpfType.a))
+      .map(prop("value"))
       .forEach((domain) => {
-        if (R.contains(domain, status.domains)) return;
+        if (contains(domain, status.domains)) return;
         // * Mutate the state
         status.domains.push(domain);
-      })
+      });
 
     // * Check if it's a full match
-    status.match = [
-      R.equals(status.includes, R.propOr([], 'includes', search)),
-      R.equals(status.ips, R.propOr([], 'ips', search)),
-      R.equals(status.domains, R.propOr([], 'domains', search)),
-    ].every(R.equals(true)) || status.match
-  }
+    status.match =
+      [
+        equals(status.includes, propOr([], "includes", search)),
+        equals(status.ips, propOr([], "ips", search)),
+        equals(status.domains, propOr([], "domains", search)),
+      ].every(equals(true)) || status.match;
+  };
 
   const getIncludes = async (record: Record, depth: number) => {
     updateState(record);
@@ -101,48 +131,55 @@ const SpfInspector = (domain: string, search: Partial<Search> & { maxDepth?: num
     if (depth < 0) return Promise.resolve(record);
 
     // * Get next includes to parse
-    const includes: SpfMechanism[] = R.pathOr([], ['detail', 'mechanisms'], record)
-      .filter(R.propEq('type', SpfType.include));
+    const includes: SpfMechanism[] = pathOr(
+      [],
+      ["detail", "mechanisms"],
+      record
+    ).filter(propEq("type", SpfType.include));
 
     // * We are a the lowest level
-    if (R.length(includes) === 0) return Promise.resolve(record);
+    if (length(includes) === 0) return Promise.resolve(record);
 
     const recordsFromIncludes: Record[][] = await Promise.all(
       includes
         .map((include: SpfMechanism): string => include.value) // * Map values
-        .map((include: string): Promise<Record[]> => getDnsRecord(include)), // * Get the record
-    )
+        .map((include: string): Promise<Record[]> => getDnsRecord(include)) // * Get the record
+    );
 
     // * Recursion call to get sub-includes
     record.includes = await Promise.all(
-      R.flatten(recordsFromIncludes)
-        .map((el) => new Promise<Record>(async (resolve) => resolve(await getIncludes(el, depth - 1))))
-    )
+      flatten(recordsFromIncludes).map(
+        (el: Record) =>
+          new Promise<Record>(async (resolve) =>
+            resolve(await getIncludes(el, depth - 1))
+          )
+      )
+    );
 
     // * Recursion should be done
     return Promise.resolve(record);
-  }
+  };
 
-  return getDnsRecord(domain)
-    .then((records) => {
-
-      // * Get recursive includes with depth control
-      return Promise.all(
-        records
-          .map((record: Record): Promise<Record> => {
-            if (R.path(['detail', 'valid'], record)) return getIncludes(record, Math.max(0, R.defaultTo(10, search.maxDepth)));
-            return Promise.resolve(record);
-          })
-      ).then((records: Record[]) => {
+  return getDnsRecord(domain).then((records) => {
+    // * Get recursive includes with depth control
+    return Promise.all(
+      records.map((record: Record): Promise<Record> => {
+        if (path(["detail", "valid"], record))
+          return getIncludes(
+            record,
+            Math.max(0, defaultTo(10, search.maxDepth))
+          );
+        return Promise.resolve(record);
+      })
+    )
+      .then((records: Record[]) => {
         // * Here we got the finals records.
         // * Format the report
 
-        const helperRemoveEmpty = R.compose(
-          R.reject(
-            R.either(R.isNil, R.isEmpty)
-          ),
-          R.defaultTo([])
-        )
+        const helperRemoveEmpty = compose(
+          reject(either(isNil, isEmpty)),
+          defaultTo([])
+        );
         return Promise.resolve({
           records: records || [],
           found: {
@@ -151,21 +188,22 @@ const SpfInspector = (domain: string, search: Partial<Search> & { maxDepth?: num
             domains: helperRemoveEmpty(status.domains),
           },
           isMatch: status.match,
-          reason: '',
-        })
-      }).catch((err) => {
+          reason: "",
+        });
+      })
+      .catch((err) => {
         return Promise.reject({
           records: [],
           found: {
             ips: [],
             includes: [],
-            domains: []
+            domains: [],
           },
           isMatch: false,
-          reason: InspecterError.NOTFOUND
-        })
-      })
-    });
-}
+          reason: InspecterError.NOTFOUND,
+        });
+      });
+  });
+};
 
-export default SpfInspector
+export default SpfInspector;
