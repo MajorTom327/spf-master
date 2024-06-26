@@ -1,6 +1,6 @@
 {
   "name": "spf-master",
-  "version": "2.1.4",
+  "version": "2.2.0",
   "description": "Basic tool for inspecting SPF record",
   "type": "module",
   "scripts": {
