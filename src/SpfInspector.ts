@@ -36,6 +36,7 @@ type Search = {
 type Status = {
   found: boolean;
   match: boolean;
+  lookups: number;
 } & Search;
 
 const isRawIp = (domain: string): boolean =>
@@ -52,6 +53,7 @@ const SpfInspector = (
     includes: [],
     domains: [],
     match: false,
+    lookups: 0,
   };
 
   const getDnsRecord = (domain: string): Promise<Record[]> => {
@@ -100,6 +102,7 @@ const SpfInspector = (
       .filter(propEq(SpfType.include, "type"))
       .map(prop("value"))
       .forEach((include) => {
+        status.lookups += 1;
         if (contains(include, status.includes)) return;
         // * Mutate the state
         status.includes.push(include);
@@ -110,6 +113,7 @@ const SpfInspector = (
       .filter(propEq(SpfType.a, "type"))
       .map(prop("value"))
       .forEach((domain) => {
+        status.lookups += 1;
         if (contains(domain, status.domains)) return;
         // * Mutate the state
         status.domains.push(domain);
@@ -188,6 +192,7 @@ const SpfInspector = (
             domains: helperRemoveEmpty(status.domains),
           },
           isMatch: status.match,
+          lookups: status.lookups,
           reason: "",
         });
       })
@@ -200,6 +205,7 @@ const SpfInspector = (
             domains: [],
           },
           isMatch: false,
+          lookups: 0,
           reason: InspecterError.NOTFOUND,
         });
       });
