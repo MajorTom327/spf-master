@@ -1,7 +1,7 @@
 import * as dns from "dns";
 import SpfParser from "spf-parse";
 import { Record, SpfMechanism, SpfType } from "./Record";
-import { v4 as ipV4, v6 as ipV6 } from "ip-regex";
+import ipRegex from 'ip-regex';
 import { Report } from "./Report";
 import { InspecterError } from "./Inspecter";
 import {
@@ -40,7 +40,7 @@ type Status = {
 } & Search;
 
 const isRawIp = (domain: string): boolean =>
-  ipV4().test(domain) || ipV6().test(domain);
+  ipRegex.v4().test(domain) || ipRegex.v6().test(domain);
 
 const SpfInspector = (
   domain: string,
