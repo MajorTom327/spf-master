@@ -503,9 +503,9 @@ punycode@^1.4.1:
   integrity sha1-wNWmOycYgArY4esPpSachN1BhF4=
 
 rambda@^9.0.1:
-  version "9.0.1"
-  resolved "https://registry.yarnpkg.com/rambda/-/rambda-9.0.1.tgz#1e8e2e3534710af4af9ef90937185604ac2edf0b"
-  integrity sha512-Su5spknJIBhYUDHNyfEYknOmZTHxbT+kOGRuzLtxF+gjI7YBm7lX0DE/7qnQ6zszve62AJFuLC+7gXD/VSiwRQ==
+  version "9.3.0"
+  resolved "https://registry.yarnpkg.com/rambda/-/rambda-9.3.0.tgz#12b5c336320e6c5fdb1fbe4d38ab69f4983d821c"
+  integrity sha512-cl/7DCCKNxmsbc0dXZTJTY08rvDdzLhVfE6kPBson1fWzDapLzv0RKSzjpmAqP53fkQqAvq05gpUVHTrUNsuxg==
 
 randombytes@^2.1.0:
   version "2.1.0"
