@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@rollup/plugin-terser": "^0.4.4",
-    "@rollup/plugin-typescript": "^11.1.6",
+    "@rollup/plugin-typescript": "^12.1.1",
     "@types/ip-regex": "^4.1.1",
     "@types/node": "^22.1.0",
     "ip-regex": "^5.0.0",
